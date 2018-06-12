@@ -49,7 +49,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final long MIN_TIME_BW_UPDATES = 1000 * 5;
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 0.0f;
-    private static final int MY_LOC_ZOOM_FACTOR = 5;
+    private static final int MY_LOC_ZOOM_FACTOR = 18;
 
     private EditText trackingButton;
     private boolean isTracking;
@@ -170,8 +170,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Geocoder geocoder = new Geocoder(this, Locale.US);
 
             try {
-                addressList = geocoder.getFromLocationName(location, 100, userLocation.latitude - (5.0/60), userLocation.longitude-(5.0/60),
-                        userLocation.latitude+(5.0/60), userLocation.longitude+(5.0/60));
+                addressList = geocoder.getFromLocationName(location, 100,
+                        userLocation.latitude - (5.0/60),
+                        userLocation.longitude-(5.0/60),
+                        userLocation.latitude+(5.0/60),
+                        userLocation.longitude+(5.0/60));
                 Log.d("MyMapsApp", "onSearch: addressList is created");
             } catch (IOException e){
                 e.printStackTrace();
@@ -185,7 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Address address = addressList.get(i);
                     LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
 
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(i+": " + address.getSubThoroughfare()));
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(i+": " + address.getAddressLine(i)));
                     mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
 
                 }
@@ -304,16 +307,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     void dropAmarker(String provider){
         if (locationManager != null){
-            if((ActivityCompat.checkSelfPermission( MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) && (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
+            if((ActivityCompat.checkSelfPermission( MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                    && (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
                 return;
             }
 
             myLocation = locationManager.getLastKnownLocation(provider);
 
+            /*
             if (myLocation != null){
                 latitude = myLocation.getLatitude();
                 longitude= myLocation.getLongitude();
             }
+            */
         }
 
         LatLng userLocation = null;
@@ -326,27 +332,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
             Toast.makeText(this, "dropAmarker: myLocation is " + userLocation, Toast.LENGTH_SHORT).show();
             if (provider == LocationManager.GPS_PROVIDER){
-                Circle circle = mMap.addCircle(new CircleOptions()
-                        .center(userLocation)
-                        .radius(1)
-                        .strokeColor(Color.RED)
-                        .strokeWidth(2)
-                        .fillColor(Color.RED));
-
-                Circle circleOuter = mMap.addCircle(new CircleOptions()
-                        .center(userLocation)
-                        .radius(3)
-                        .strokeColor(Color.RED)
-                        .strokeWidth(2)
-                        .fillColor(Color.TRANSPARENT));
-
-                Circle circleOuter2 = mMap.addCircle(new CircleOptions()
-                        .center(userLocation)
-                        .radius(5)
-                        .strokeColor(Color.RED)
-                        .strokeWidth(2)
-                        .fillColor(Color.TRANSPARENT));
-            } else {
                 Circle circle = mMap.addCircle(new CircleOptions()
                         .center(userLocation)
                         .radius(1)
@@ -367,6 +352,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .strokeColor(Color.BLUE)
                         .strokeWidth(2)
                         .fillColor(Color.TRANSPARENT));
+            } else {
+                Circle circle = mMap.addCircle(new CircleOptions()
+                        .center(userLocation)
+                        .radius(1)
+                        .strokeColor(Color.RED)
+                        .strokeWidth(2)
+                        .fillColor(Color.RED));
+
+                Circle circleOuter = mMap.addCircle(new CircleOptions()
+                        .center(userLocation)
+                        .radius(3)
+                        .strokeColor(Color.RED)
+                        .strokeWidth(2)
+                        .fillColor(Color.TRANSPARENT));
+
+                Circle circleOuter2 = mMap.addCircle(new CircleOptions()
+                        .center(userLocation)
+                        .radius(5)
+                        .strokeColor(Color.RED)
+                        .strokeWidth(2)
+                        .fillColor(Color.TRANSPARENT));
             }
             mMap.animateCamera(update);
         }
@@ -375,17 +381,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void TrackMyLocation (View view){
         isTracking = !isTracking;
-        Toast.makeText(this,"trackMyLocation: tracking is now" + isTracking, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"trackMyLocation: tracking is now " + isTracking, Toast.LENGTH_SHORT).show();
         if (isTracking){
             if(isGPSEnabled){
+                getLocation();
                 dropAmarker(LocationManager.GPS_PROVIDER);
             } else if (isNetworkEnabled) {
+                getLocation();
                 dropAmarker(LocationManager.NETWORK_PROVIDER);
             }
             locationManager.removeUpdates(locationListenerGPS);
             locationManager.removeUpdates(locationListenerNetwork);
         } else {
-            getLocation();
+            //getLocation();
+
         }
 
 
